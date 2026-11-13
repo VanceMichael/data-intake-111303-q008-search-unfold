@@ -1,0 +1,152 @@
+[
+  {
+    "name": "代表项不代表全组",
+    "routes": [
+      {
+        "path": "/search",
+        "body": {
+          "view": "v1",
+          "groups": [
+            {
+              "id": "g1",
+              "representative": "a",
+              "members": "/groups/g1"
+            }
+          ]
+        }
+      },
+      {
+        "path": "/groups/g1",
+        "body": {
+          "view": "v1",
+          "members": [
+            "a"
+          ],
+          "next": "/groups/g1?page=2"
+        }
+      },
+      {
+        "path": "/groups/g1?page=2",
+        "body": {
+          "view": "v1",
+          "members": [
+            "b"
+          ],
+          "next": null
+        }
+      }
+    ],
+    "input": {},
+    "expected": {
+      "complete": true,
+      "ids": [
+        "a",
+        "b"
+      ]
+    },
+    "required": [
+      "/groups/g1?page=2"
+    ]
+  },
+  {
+    "name": "失效视图不能宣称闭合",
+    "routes": [
+      {
+        "path": "/search",
+        "body": {
+          "view": "v1",
+          "groups": [
+            {
+              "id": "g1",
+              "representative": "a",
+              "members": "/groups/g1"
+            }
+          ]
+        }
+      },
+      {
+        "path": "/groups/g1",
+        "body": {
+          "error": "view-expired"
+        },
+        "status": 410
+      }
+    ],
+    "input": {
+      "maxRefresh": 1
+    },
+    "expected": {
+      "complete": false,
+      "unresolved": [
+        "g1"
+      ]
+    },
+    "required": [
+      "/groups/g1"
+    ]
+  },
+  {
+    "name": "交叉成员保留两个组关系",
+    "routes": [
+      {
+        "path": "/search",
+        "body": {
+          "view": "v2",
+          "groups": [
+            {
+              "id": "x",
+              "representative": "a",
+              "members": "/groups/x"
+            },
+            {
+              "id": "y",
+              "representative": "a",
+              "members": "/groups/y"
+            }
+          ]
+        }
+      },
+      {
+        "path": "/groups/x",
+        "body": {
+          "view": "v2",
+          "members": [
+            "a",
+            "b"
+          ],
+          "next": null
+        }
+      },
+      {
+        "path": "/groups/y",
+        "body": {
+          "view": "v2",
+          "members": [
+            "a",
+            "c"
+          ],
+          "next": null
+        }
+      }
+    ],
+    "input": {},
+    "expected": {
+      "complete": true,
+      "ids": [
+        "a",
+        "b",
+        "c"
+      ],
+      "membership": {
+        "a": [
+          "x",
+          "y"
+        ]
+      }
+    },
+    "required": [
+      "/groups/x",
+      "/groups/y"
+    ]
+  }
+]
